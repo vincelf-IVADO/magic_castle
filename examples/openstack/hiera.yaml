@@ -1,0 +1,10 @@
+---
+selinux::mode: 'permissive'
+
+profile::users::ldap::users:
+  'user':
+    count: 10
+    passwd: "%{alias('terraform.data.guest_passwd')}"
+    groups: ['def-sponsor00']
+
+
