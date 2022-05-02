@@ -13,7 +13,7 @@ variable "subnet_id" {
 }
 
 data "external" "keystone" {
-  program = ["python", "${path.module}/external/keystone.py"]
+  program = ["python2", "${path.module}/external/keystone.py"]
 }
 
 locals {
