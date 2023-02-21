@@ -119,8 +119,8 @@ variable "firewall_rules" {
 }
 
 locals {
-  unique_tags = unique([for key, values in var.instances: values["tags"]])
-  firewall_rules = length(var.firewall_rules) > 0 ? var.firewall_rules : concat([for tag in local.unique_tags: lookup(local.fw_rules_per_tags, tag, [])])
+  unique_tags = distinct(flatten(concat([for key, values in var.instances: values["tags"]])))
+  firewall_rules = length(var.firewall_rules) > 0 ? var.firewall_rules :flatten(concat([for tag in local.unique_tags: lookup(local.fw_rules_per_tags, tag, [])]))
   fw_rules_per_tags = {
     public = [
       {
