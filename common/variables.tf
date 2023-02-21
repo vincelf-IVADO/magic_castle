@@ -88,63 +88,6 @@ variable "sudoer_username" {
   description = "Username of the administrative account"
 }
 
-variable "firewall_rules" {
-  type = list(
-    object({
-      name        = string
-      from_port   = number
-      to_port     = number
-      ip_protocol = string
-      cidr        = string
-    })
-  )
-  default = [
-    {
-      "name"        = "SSH",
-      "from_port"   = 22,
-      "to_port"     = 22,
-      "ip_protocol" = "tcp",
-      "cidr"        = "0.0.0.0/0"
-    },
-    {
-      "name"        = "HTTP",
-      "from_port"   = 80,
-      "to_port"     = 80,
-      "ip_protocol" = "tcp",
-      "cidr"        = "0.0.0.0/0"
-    },
-    {
-      "name"        = "HTTPS",
-      "from_port"   = 443,
-      "to_port"     = 443,
-      "ip_protocol" = "tcp",
-      "cidr"        = "0.0.0.0/0"
-    },
-    {
-      "name"        = "Globus",
-      "from_port"   = 2811,
-      "to_port"     = 2811,
-      "ip_protocol" = "tcp",
-      "cidr"        = "54.237.254.192/29"
-    },
-    {
-      "name"        = "MyProxy",
-      "from_port"   = 7512,
-      "to_port"     = 7512,
-      "ip_protocol" = "tcp",
-      "cidr"        = "0.0.0.0/0"
-    },
-    {
-      "name"        = "GridFTP",
-      "from_port"   = 50000,
-      "to_port"     = 51000,
-      "ip_protocol" = "tcp",
-      "cidr"        = "0.0.0.0/0"
-    }
-  ]
-  description = "List of login external firewall rules defined as map of 5 values name, from_port, to_port, ip_protocol and cidr"
-}
-
 variable "generate_ssh_key" {
   type        = bool
   default     = false
@@ -159,4 +102,73 @@ variable "software_stack" {
 
 variable "pool" {
   default = []
+}
+
+variable "firewall_rules" {
+  type = list(
+    object({
+      name        = string
+      from_port   = number
+      to_port     = number
+      ip_protocol = string
+      cidr        = string
+    })
+  )
+  default = []
+  description = "List of external firewall rules defined as list of map of 5 values name, from_port, to_port, ip_protocol and cidr"
+}
+
+locals {
+  unique_tags = unique([for key, values in var.instances: values["tags"]])
+  firewall_rules = length(var.firewall_rules) > 0 ? var.firewall_rules : concat([for tag in local.unique_tags: lookup(local.fw_rules_per_tags, tag, [])])
+  fw_rules_per_tags = {
+    public = [
+      {
+        "name"        = "SSH",
+        "from_port"   = 22,
+        "to_port"     = 22,
+        "ip_protocol" = "tcp",
+        "cidr"        = "0.0.0.0/0"
+      }
+    ]
+    proxy = [
+      {
+        "name"        = "HTTP",
+        "from_port"   = 80,
+        "to_port"     = 80,
+        "ip_protocol" = "tcp",
+        "cidr"        = "0.0.0.0/0"
+      },
+      {
+        "name"        = "HTTPS",
+        "from_port"   = 443,
+        "to_port"     = 443,
+        "ip_protocol" = "tcp",
+        "cidr"        = "0.0.0.0/0"
+      }
+    ],
+    dtn = [
+      {
+        "name"        = "Globus",
+        "from_port"   = 2811,
+        "to_port"     = 2811,
+        "ip_protocol" = "tcp",
+        "cidr"        = "54.237.254.192/29"
+      },
+      {
+        "name"        = "MyProxy",
+        "from_port"   = 7512,
+        "to_port"     = 7512,
+        "ip_protocol" = "tcp",
+        "cidr"        = "0.0.0.0/0"
+      },
+      {
+        "name"        = "GridFTP",
+        "from_port"   = 50000,
+        "to_port"     = 51000,
+        "ip_protocol" = "tcp",
+        "cidr"        = "0.0.0.0/0"
+      }
+    ],
+  }
 }
